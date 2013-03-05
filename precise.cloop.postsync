@@ -1,0 +1,48 @@
+# $Id: precise-cloop.postsync 1 2013-01-28 10:30:00Z anschuetz $
+
+echo "##### POSTSYNC BEGIN #####"
+
+# Nach Hostgruppen unterscheiden:
+#if [[ $(hostgroup) == "gruppenname" ]] 
+#then 
+#	echo "$(hostname) der Gruppe $(hostgroup) wurde post-sync gepatcht!"
+#fi # HOSTGRUPPE ENDE
+
+# Links zu initrd.img und vmlinuz korrigieren, um
+# Kernel-Panic zu verhindern, die durch absolute
+# Pfade entsteht, wenn das System aus /mnt/ nachgebootet werden
+# soll...
+# 23.02.2013 - jesko.anschuetz@linuxmuster.net
+
+# Für alle relevanten Dateien wiederholen:
+# 1. Prüfen, ob der Link absolut oder relativ gesetzt ist, wenn absolut, korrigieren...
+
+PWD=$(pwd)
+cd /mnt
+for LINKNAME in initrd.img vmlinuz
+do
+  if [ "$(ls -l $LINKNAME | cut -d ">" -f 2 | sed 's/^ *//g'|cut -d "b" -f 1)" == "/" ] ;
+                          # beim > trennen | Space wegmachen| Beim b (von boot) trennen und schauen, ob davor ein / war)
+  then
+      echo $LINKNAME ist absolut verlinkt.
+      LINKZIEL=$(ls -l initrd.img | cut -d ">" -f 2 |cut -d "/" -f 3)
+      if [ "$(echo $LINKZIEL | cut -d "-" -f 1)" == "$LINKNAME" ]
+      then
+           echo -n "Verschiebe $LINKNAME nach $LINKNAME... "
+           mv $LINKNAME $LINKNAME.bak && echo "OK" || echo "gescheitert!"
+           echo -n "verlinke $LINKNAME nach boot/$LINKZIEL... "
+           ln -s boot/$LINKZIEL $LINKNAME && echo "OK" || echo "gescheitert"
+           # TODO hier müsste noch ein Test rein, der prüft, ob der link _korrekt_ angelegt wurde und im Notfall
+           # das Backup des Links zurückkopiert...
+      else
+           echo "Etwas stimmt nicht! Linkziel ($LINKZIEL) stimmt nicht mit Linkname ($LINKNAME) überein!"
+           echo "Link für $LINKNAME nicht verändert!"
+      fi
+
+  else
+      echo $LINKNAME ist schon relativ verlinkt. Nichts verändert;
+  fi
+done
+
+echo "##### POSTSYNC END #####"
+
