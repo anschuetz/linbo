@@ -1,0 +1,30 @@
+# Dieser Patch muss in die Postsync-Datei der betroffenen Gruppe
+# Dann wird in die Datei (s.u.) vor der Zeile, die mit $VOR beginnt
+# eine Zeile eingefügt, die $EINFUEGEN enthält. 
+# Im Linbo-Log wird $BESCHREIBUNG ausgegeben und eine Erfolgs/Misserfolgsmeldung 
+
+
+######### BEGINN Patch Nr. 1 ###################
+HARDWAREGRUPPE="travelmate5735z"
+BESCHREIBUNG="Reparieren des Backlight-Bugs"
+EINFUEGEN="setpci -s 00:02.0 F4.B=00"
+VOR="^exit 0"   # VORSICHT! DIE STELLE MUSS EINDEUTIG SEIN, SONST GIBT ES NEBENWIRKUNGEN!
+		# Zur Not in die Datei einen Platzhalterkommentar schreiben: z.B. #HIER
+DATEI="/mnt/etc/rc.local"
+
+# wenn das Einzufügende schon drinsteht, dann erstmal rauslöschen...
+grep -e "$EINFUEGEN" $DATEI >> /dev/null && sed -e "/$EINFUEGEN/d" -i $DATEI
+
+# Test, ob die Stelle überhaupt gefunden werden kann.
+if [[ $(grep -e "$VOR" $DATEI) == "" ]]
+then
+     echo "Kann vor Stelle >$VOR< nichts einfügen, weil $VOR in $DATEI nicht existiert."
+else
+     if [[ "$HARDWAREGRUPPE" == "$HARDWAREGRUPPE" ]]
+     then
+        echo -n "$BESCHREIBUNG "
+        sed -e "/$VOR/ i $EINFUEGEN" -i $DATEI
+	grep -e "$EINFUEGEN" $DATEI >> /dev/null && echo "...war erfolgreich" || echo "...ist gescheitert."
+     fi
+fi
+########### ENDE Patch Nr. 1 #####################
