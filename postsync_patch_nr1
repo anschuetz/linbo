@@ -18,7 +18,7 @@ grep -e "$EINFUEGEN" $DATEI >> /dev/null && sed -e "/$EINFUEGEN/d" -i $DATEI
 # Test, ob die Stelle überhaupt gefunden werden kann.
 if [[ $(grep -e "$VOR" $DATEI) == "" ]]
 then
-     echo "Kann vor Stelle >$VOR< nichts einfügen, weil $VOR in $DATEI nicht existiert."
+     echo "Ich kann in $DATEI die Einfügestelle ($VOR) nicht finden! Ich gebe auf!"
 else
      if [[ "$HARDWAREGRUPPE" == "$HARDWAREGRUPPE" ]]
      then
