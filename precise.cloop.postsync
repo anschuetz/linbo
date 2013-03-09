@@ -1,3 +1,4 @@
+#!/bin/bash
 # $Id: precise-cloop.postsync 1 2013-01-28 10:30:00Z anschuetz $
 
 echo "##### POSTSYNC BEGIN #####"
