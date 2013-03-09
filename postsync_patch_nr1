@@ -1,3 +1,4 @@
+#!/bin/bash
 # Dieser Patch muss in die Postsync-Datei der betroffenen Gruppe
 # Dann wird in die Datei (s.u.) vor der Zeile, die mit $VOR beginnt
 # eine Zeile eingefügt, die $EINFUEGEN enthält. 
@@ -12,19 +13,26 @@ VOR="^exit 0"   # VORSICHT! DIE STELLE MUSS EINDEUTIG SEIN, SONST GIBT ES NEBENW
 		# Zur Not in die Datei einen Platzhalterkommentar schreiben: z.B. #HIER
 DATEI="/mnt/etc/rc.local"
 
-# wenn das Einzufügende schon drinsteht, dann erstmal rauslöschen...
-grep -e "$EINFUEGEN" $DATEI >> /dev/null && sed -e "/$EINFUEGEN/d" -i $DATEI
-
-# Test, ob die Stelle überhaupt gefunden werden kann.
-if [[ $(grep -e "$VOR" $DATEI) == "" ]]
+# Sinnvolles weiterarbeiten nur möglich, wenn die Datei auch existiert...
+if [ -e $DATEI ] ;
 then
-     echo "Ich kann in $DATEI die Einfügestelle ($VOR) nicht finden! Ich gebe auf!"
-else
-     if [[ "$HARDWAREGRUPPE" == "$HARDWAREGRUPPE" ]]
-     then
-        echo -n "$BESCHREIBUNG "
-        sed -e "/$VOR/ i $EINFUEGEN" -i $DATEI
-	grep -e "$EINFUEGEN" $DATEI >> /dev/null && echo "...war erfolgreich" || echo "...ist gescheitert."
-     fi
+  # wenn das Einzufügende schon drinsteht, dann erstmal rauslöschen...
+  grep -e "$EINFUEGEN" $DATEI >> /dev/null && sed -e "/$EINFUEGEN/d" -i $DATEI
+
+  # Test, ob die Stelle überhaupt gefunden werden kann.
+  if [[ $(grep -c -e "$VOR" "$DATEI") == "0" ]]
+  then
+       echo "Ich kann in $DATEI die Einfügestelle ($VOR) nicht finden! Ich gebe auf!"
+  else
+  #     if [[ "$(hostgroup)" == "$HARDWAREGRUPPE" ]]
+       if [[ 1==1 ]]
+       then
+          echo -n "$BESCHREIBUNG "
+          sed -e "/$VOR/ i $EINFUEGEN" -i "$DATEI"
+	  grep -e "$EINFUEGEN" $DATEI >> /dev/null && echo "...war an $(grep -c -e "$EINFUEGEN" "$DATEI") Stelle(n) erfolgreich" || echo "...ist gescheitert."
+       fi
+  fi
+else 
+  echo "Datei ($DATEI) existiert nicht. Patchen unmöglich."
 fi
 ########### ENDE Patch Nr. 1 #####################
