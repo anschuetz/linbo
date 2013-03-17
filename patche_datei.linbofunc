@@ -1,16 +1,20 @@
+# Diese Funktion patcht bei einer HARDWAREGRUPPE eine DATEI, 
+# indem vor einer Zeile, die "VOR" enthält, eine Zeile eingefügt
+# wird, die dann "EINFUEGEN" enthält.
+# Aufruf: patche_datei HARDWAREGRUPPE BESCHREIBUNG DATEI VOR EINFUEGEN
 # Dieser Patch muss in die Postsync-Datei der betroffenen Gruppe
 # Dann wird in die Datei (s.u.) vor der Zeile, die mit $VOR beginnt
 # eine Zeile eingefügt, die $EINFUEGEN enthält. 
 # Im Linbo-Log wird $BESCHREIBUNG ausgegeben und eine Erfolgs/Misserfolgsmeldung 
 
-
-######### BEGINN Patch Nr. 1 ###################
-HARDWAREGRUPPE="travelmate5735z"
-BESCHREIBUNG="Reparieren des Backlight-Bugs"
-EINFUEGEN="setpci -s 00:02.0 F4.B=00"
-VOR="^exit 0"   # VORSICHT! DIE STELLE MUSS EINDEUTIG SEIN, SONST GIBT ES NEBENWIRKUNGEN!
+patche_datei() {
+######### BEGINN Patchfunktion ###################
+HARDWAREGRUPPE=$1
+BESCHREIBUNG=$2
+DATEI=/mnt/$3
+VOR=$4    	# VORSICHT! DIE STELLE MUSS EINDEUTIG SEIN, SONST GIBT ES NEBENWIRKUNGEN!
 		# Zur Not in die Datei einen Platzhalterkommentar schreiben: z.B. #HIER
-DATEI="/mnt/etc/rc.local"
+EINFUEGEN=$4
 
 # Sinnvolles weiterarbeiten nur möglich, wenn die Datei auch existiert...
 if [ -e $DATEI ] ;
@@ -33,4 +37,5 @@ then
 else 
   echo "Datei ($DATEI) existiert nicht. Patchen unmöglich."
 fi
-########### ENDE Patch Nr. 1 #####################
+} ########### ENDE Patchfunktion #####################
+
