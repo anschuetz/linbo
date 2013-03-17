@@ -1,0 +1,41 @@
+# Diese Funktion patcht bei einer HARDWAREGRUPPE eine DATEI, 
+# indem vor einer Zeile, die "VOR" enthält, eine Zeile eingefügt
+# wird, die dann "EINFUEGEN" enthält.
+# Aufruf: patche_datei HARDWAREGRUPPE BESCHREIBUNG DATEI VOR EINFUEGEN
+# Dieser Patch muss in die Postsync-Datei der betroffenen Gruppe
+# Dann wird in die Datei (s.u.) vor der Zeile, die mit $VOR beginnt
+# eine Zeile eingefügt, die $EINFUEGEN enthält. 
+# Im Linbo-Log wird $BESCHREIBUNG ausgegeben und eine Erfolgs/Misserfolgsmeldung 
+
+patche_datei() {
+######### BEGINN Patchfunktion ###################
+HARDWAREGRUPPE=$1
+BESCHREIBUNG=$2
+DATEI=/mnt/$3
+VOR=$4    	# VORSICHT! DIE STELLE MUSS EINDEUTIG SEIN, SONST GIBT ES NEBENWIRKUNGEN!
+		# Zur Not in die Datei einen Platzhalterkommentar schreiben: z.B. #HIER
+EINFUEGEN=$4
+
+# Sinnvolles weiterarbeiten nur möglich, wenn die Datei auch existiert...
+if [ -e $DATEI ] ;
+then
+  # wenn das Einzufügende schon drinsteht, dann erstmal rauslöschen...
+  grep -e "$EINFUEGEN" $DATEI >> /dev/null && sed -e "/$EINFUEGEN/d" -i $DATEI
+
+  # Test, ob die Stelle überhaupt gefunden werden kann.
+  if [[ $(grep -c -e "$VOR" "$DATEI") == "0" ]]
+  then
+       echo "Ich kann in $DATEI die Einfügestelle ($VOR) nicht finden! Ich gebe auf!"
+  else
+       if [[ "$(hostgroup)" == "$HARDWAREGRUPPE" ]]
+       then
+          echo -n "$BESCHREIBUNG "
+          sed -e "/$VOR/ i $EINFUEGEN" -i "$DATEI"
+	  grep -e "$EINFUEGEN" $DATEI >> /dev/null && echo "...war an $(grep -c -e "$EINFUEGEN" "$DATEI") Stelle(n) erfolgreich" || echo "...ist gescheitert."
+       fi
+  fi
+else 
+  echo "Datei ($DATEI) existiert nicht. Patchen unmöglich."
+fi
+} ########### ENDE Patchfunktion #####################
+
