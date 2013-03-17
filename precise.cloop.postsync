@@ -23,9 +23,12 @@ for LINKNAME in initrd.img vmlinuz
 do
   if [ "$(ls -l $LINKNAME | cut -d ">" -f 2 | sed 's/^ *//g'|cut -d "b" -f 1)" == "/" ] ;
                           # beim > trennen | Space wegmachen| Beim b (von boot) trennen und schauen, ob davor ein / war)
+# alternativ schöner und kürzer, aber noch ungetestet: 
+# if [ "$(ls -l /initrd.img | awk -F\>\  '{print $2}'|head -c1)" == "/" ] ;
+			 # bei "> " trennen, zweite Spalte, erstes Zeichen.
   then
       echo $LINKNAME ist absolut verlinkt.
-      LINKZIEL=$(ls -l initrd.img | cut -d ">" -f 2 |cut -d "/" -f 3)
+      LINKZIEL=$(ls -l $LINKNAME | cut -d ">" -f 2 |cut -d "/" -f 3)
       if [ "$(echo $LINKZIEL | cut -d "-" -f 1)" == "$LINKNAME" ]
       then
            echo -n "Verschiebe $LINKNAME nach $LINKNAME... "
