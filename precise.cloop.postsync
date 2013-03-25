@@ -38,12 +38,12 @@ do
            # TODO hier müsste noch ein Test rein, der prüft, ob der link _korrekt_ angelegt wurde und im Notfall
            # das Backup des Links zurückkopiert...
       else
-           echo "Etwas stimmt nicht! Linkziel ($LINKZIEL) stimmt nicht mit Linkname ($LINKNAME) überein!"
-           echo "Link für $LINKNAME nicht verändert!"
+           echo "Etwas stimmt nicht! Linkziel ($LINKZIEL) stimmt nicht mit Linkname ($LINKNAME) ueberein!"
+           echo "Link für $LINKNAME nicht veraendert!"
       fi
 
   else
-      echo $LINKNAME ist schon relativ verlinkt. Nichts verändert;
+      echo $LINKNAME ist schon relativ verlinkt. Nichts veraendert;
   fi
 done
 
