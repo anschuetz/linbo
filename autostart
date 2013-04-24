@@ -1,0 +1,71 @@
+#!/bin/bash
+# Skript zum einfachen ein/ausschalten des Autostarts in der start.conf
+# jesko.anschuetz@linuxmuster.net April 2013
+#
+# 
+# usage: autostart start.conf.hwk label on/off
+#
+# Der betroffene Autostart braucht ein Hilfslabel am Ende der Zeile:
+# Bsp:
+# Autostart = no # ubuntu12
+
+
+STARTCONF=/var/linbo/$1
+LABEL=$2
+
+case "$3" in
+	[oO][nN])
+		SWITCH=ON
+            	;;
+
+	[oO][fF][fF])
+		SWITCH=OFF
+            	;;
+
+  	*) 
+		SWITCH=TOGGLE
+     		;;
+esac
+
+if [ ! -e $STARTCONF ]
+then
+	echo $STARTCONF existiert nicht... Abbruch >&2
+	exit 1
+fi
+
+UNIQUE=$(grep "$LABEL" "$STARTCONF" | grep -c "utostart")
+if [[ $UNIQUE != 1 ]] 
+then 
+	echo Label nicht vorhanden, nicht eindeutig oder nicht in einer Autostart-Zeile... >&2
+	exit 1
+fi
+
+
+# Zeile aus start.conf extrahieren
+OLDLINE=$(grep "$LABEL" "$STARTCONF")
+
+case "$SWITCH" in
+	TOGGLE)
+		echo das ist noch nicht implementiert. Bitte Schalter on/off angeben!
+            	;;
+
+	OFF)
+		echo Autostart ausschalten...
+		NEWLINE=$(echo $OLDLINE | sed -e 's/[yY][eE][sS]/no/g')
+            	;;
+
+	ON)
+		echo Autostart anschalten...
+		NEWLINE=$(echo $OLDLINE | sed -e 's/[nN][oO]/yes/g')
+            	;;
+
+  	*) 
+		echo Irgendwas ist schief gelaufen, diese Zeile hätte nie ausgeführt werden dürfen...
+		exit 1
+     		;;
+esac
+
+sed -e "s/$OLDLINE/$NEWLINE/g" -i $STARTCONF
+
+echo ...fertig
+
