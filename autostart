@@ -10,13 +10,14 @@
 # Autostart = no # ubuntu12
 # Wird ON/OFF weggelassen, schaltet das Skript den Status einfach um.
 
+# Konfiguration
 LINBOPFAD=/var/linbo
+PREFIX=start.conf
 # Parameter in Variablen speichern, dabei den Linbo-Pfad automatisch ergänzen.
-STARTCONF=$LINBOPFAD/start.conf.$1
+STARTCONF=$LINBOPFAD/$PREFIX.$1
 LABEL=$2
 
 # offensichtliche Bedienfehler abfangen
-
 # Startkonfiguration existiert nicht:
 if [ ! -e $STARTCONF ]
 then
@@ -56,12 +57,12 @@ OLDLINE=$(grep "$LABEL" "$STARTCONF")
 
 case "$SWITCH" in
 	OFF)
-		echo Autostart ausschalten...
+		echo -e "Autostart \e[00;31mausschalten\e[00m"...
 		NEWLINE=$(echo $OLDLINE | sed -e 's/[yY][eE][sS]/no/g')
             	;;
 
 	ON)
-		echo Autostart anschalten...
+		echo -e "Autostart \e[00;32meinschalten\e[00m"...
 		NEWLINE=$(echo $OLDLINE | sed -e 's/[nN][oO]/yes/g')
             	;;
 
@@ -73,6 +74,6 @@ esac
 
 sed -e "s/$OLDLINE/$NEWLINE/g" -i $STARTCONF
 STATUSQUO=$(grep ubuntu /var/linbo/start.conf.lenny |grep utostart | cut -d" " -f3)
-echo "Autostart ist jetzt auf $STATUSQUO gesetzt"
+echo -e "Autostart in $STARTCONF ist jetzt:  $STATUSQUO"
 
 
