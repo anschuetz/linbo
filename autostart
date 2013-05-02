@@ -72,6 +72,7 @@ case "$SWITCH" in
 esac
 
 sed -e "s/$OLDLINE/$NEWLINE/g" -i $STARTCONF
+STATUSQUO=$(grep ubuntu /var/linbo/start.conf.lenny |grep utostart | cut -d" " -f3)
+echo "Autostart ist jetzt auf $STATUSQUO gesetzt"
 
-echo ...fertig
 
