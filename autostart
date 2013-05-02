@@ -3,15 +3,35 @@
 # jesko.anschuetz@linuxmuster.net April 2013
 #
 # 
-# usage: autostart start.conf.hwk label on/off
+# usage: autostart GRUPPE LABEL [on/off]
 #
 # Der betroffene Autostart braucht ein Hilfslabel am Ende der Zeile:
 # Bsp:
 # Autostart = no # ubuntu12
+# Wird ON/OFF weggelassen, schaltet das Skript den Status einfach um.
 
-
-STARTCONF=/var/linbo/$1
+LINBOPFAD=/var/linbo
+# Parameter in Variablen speichern, dabei den Linbo-Pfad automatisch ergänzen.
+STARTCONF=$LINBOPFAD/start.conf.$1
 LABEL=$2
+
+# offensichtliche Bedienfehler abfangen
+
+# Startkonfiguration existiert nicht:
+if [ ! -e $STARTCONF ]
+then
+	echo $STARTCONF existiert nicht... Abbruch >&2
+	exit 1
+fi
+
+# Label nicht vorhanden oder mehrdeutig
+UNIQUE=$(grep "$LABEL" "$STARTCONF" | grep -c "utostart")
+if [[ $UNIQUE != 1 ]]
+then
+	echo Label nicht vorhanden, nicht eindeutig oder nicht in einer Autostart-Zeile... >&2
+	echo 'USAGE: autostart <start.conf.hwk> <label> <yes|no>'
+	exit 1
+fi
 
 case "$3" in
 	[oO][nN])
@@ -23,33 +43,18 @@ case "$3" in
             	;;
 
   	*) 
-		SWITCH=TOGGLE
+		STATUSQUO=$(grep ubuntu /var/linbo/start.conf.lenny |grep utostart | cut -d" " -f3)
+#		echo $STATUSQUO
+		[[ "$STATUSQUO" == "yes" ]] && SWITCH=OFF || SWITCH=ON
      		;;
 esac
 
-if [ ! -e $STARTCONF ]
-then
-	echo $STARTCONF existiert nicht... Abbruch >&2
-	exit 1
-fi
-
-UNIQUE=$(grep "$LABEL" "$STARTCONF" | grep -c "utostart")
-if [[ $UNIQUE != 1 ]] 
-then 
-	echo Label nicht vorhanden, nicht eindeutig oder nicht in einer Autostart-Zeile... >&2
-	echo 'USAGE: autostart <start.conf.hwk> <label> <yes|no>'
-	exit 1
-fi
 
 
 # Zeile aus start.conf extrahieren
 OLDLINE=$(grep "$LABEL" "$STARTCONF")
 
 case "$SWITCH" in
-	TOGGLE)
-		echo das ist noch nicht implementiert. Bitte Schalter on/off angeben!
-            	;;
-
 	OFF)
 		echo Autostart ausschalten...
 		NEWLINE=$(echo $OLDLINE | sed -e 's/[yY][eE][sS]/no/g')
