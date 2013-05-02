@@ -37,6 +37,7 @@ UNIQUE=$(grep "$LABEL" "$STARTCONF" | grep -c "utostart")
 if [[ $UNIQUE != 1 ]] 
 then 
 	echo Label nicht vorhanden, nicht eindeutig oder nicht in einer Autostart-Zeile... >&2
+	echo 'USAGE: autostart <start.conf.hwk> <label> <yes|no>'
 	exit 1
 fi
 
