@@ -31,7 +31,7 @@ UNIQUE=$(grep "$LABEL" "$STARTCONF" | grep -c "utostart")
 if [[ $UNIQUE != 1 ]]
 then
 	echo Label nicht vorhanden, nicht eindeutig oder nicht in einer Autostart-Zeile... >&2
-	echo 'USAGE: autostart <start.conf.hwk> <label> <yes|no>'
+	echo 'USAGE: autostart <GRUPPE> <LABEL> <yes|no|status>'
 	exit 1
 fi
 
@@ -52,7 +52,6 @@ case "$3" in
 
   	*) 
 		STATUSQUO=$(grep "$LABEL" "$STARTCONF" |grep utostart | cut -d" " -f3)
-#		echo $STATUSQUO
 		[[ "$STATUSQUO" == "yes" ]] && SWITCH=OFF || SWITCH=ON
      		;;
 esac
@@ -74,7 +73,7 @@ case "$SWITCH" in
             	;;
 
   	*) 
-		echo Irgendwas ist schief gelaufen, diese Zeile hätte nie ausgeführt werden dürfen...
+		echo "Irgendwas ist schief gelaufen, diese Zeile hätte nie ausgeführt werden dürfen..." >&2
 		exit 1
      		;;
 esac
