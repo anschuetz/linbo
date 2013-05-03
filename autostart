@@ -13,6 +13,7 @@
 # Konfiguration
 LINBOPFAD=/var/linbo
 PREFIX=start.conf
+
 # Parameter in Variablen speichern, dabei den Linbo-Pfad automatisch ergänzen.
 STARTCONF=$LINBOPFAD/$PREFIX.$1
 LABEL=$2
@@ -43,8 +44,14 @@ case "$3" in
 		SWITCH=OFF
             	;;
 
+	[sS][tT][aA][tT][uU][sS])
+		STATUSQUO=$(grep "$LABEL" "$STARTCONF" |grep utostart | cut -d" " -f3)
+		echo -e "Autostart in $STARTCONF ist jetzt:  $STATUSQUO"
+		exit 0
+            	;;
+
   	*) 
-		STATUSQUO=$(grep ubuntu /var/linbo/start.conf.lenny |grep utostart | cut -d" " -f3)
+		STATUSQUO=$(grep "$LABEL" "$STARTCONF" |grep utostart | cut -d" " -f3)
 #		echo $STATUSQUO
 		[[ "$STATUSQUO" == "yes" ]] && SWITCH=OFF || SWITCH=ON
      		;;
@@ -73,7 +80,7 @@ case "$SWITCH" in
 esac
 
 sed -e "s/$OLDLINE/$NEWLINE/g" -i $STARTCONF
-STATUSQUO=$(grep ubuntu /var/linbo/start.conf.lenny |grep utostart | cut -d" " -f3)
+STATUSQUO=$(grep "$LABEL" "$STARTCONF" |grep utostart | cut -d" " -f3)
 echo -e "Autostart in $STARTCONF ist jetzt:  $STATUSQUO"
 
 
