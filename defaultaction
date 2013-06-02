@@ -1,0 +1,85 @@
+#!/bin/bash
+# Skript zum einfachen umschalten des Sync-Verhaltens start.conf
+# jesko.anschuetz@linuxmuster.net Juni 2013
+#
+# 
+# usage: defaultaction GRUPPE LABEL [sync/start]
+#
+# Der betroffene DefaultAction-Eintrag braucht ein Hilfslabel am Ende der Zeile:
+# Bsp:
+# DefaultAction = sync # ubuntu12-sync
+# Wird sync/start weggelassen, schaltet das Skript den Status einfach um.
+
+# Konfiguration
+LINBOPFAD=/var/linbo
+PREFIX=start.conf
+
+# Parameter in Variablen speichern, dabei den Linbo-Pfad automatisch ergänzen.
+STARTCONF=$LINBOPFAD/$PREFIX.$1
+LABEL=$2
+
+# offensichtliche Bedienfehler abfangen
+# Startkonfiguration existiert nicht:
+if [ ! -e $STARTCONF ]
+then
+	echo $STARTCONF existiert nicht... Abbruch >&2
+	exit 1
+fi
+
+# Label nicht vorhanden oder mehrdeutig
+UNIQUE=$(grep "$LABEL" "$STARTCONF" | grep -c "efaultAction")
+if [[ $UNIQUE != 1 ]]
+then
+	echo Label nicht vorhanden, nicht eindeutig oder nicht in einer Autostart-Zeile... >&2
+	echo 'USAGE: defaultaction <GRUPPE> <LABEL> <sync|start|status>'
+	exit 1
+fi
+
+case "$3" in
+	[sS][yY][nN][cC])
+		SWITCH=SYNC
+            	;;
+
+	[sS][tT][aA][rR][tT])
+		SWITCH=START
+            	;;
+
+	[sS][tT][aA][tT][uU][sS])
+		STATUSQUO=$(grep "$LABEL" "$STARTCONF" |grep "efaultAction" | cut -d" " -f3)
+		echo -e "DefaultAction in $STARTCONF ist jetzt:  $STATUSQUO"
+		exit 0
+            	;;
+
+  	*) 
+		STATUSQUO=$(grep "$LABEL" "$STARTCONF" |grep "efaultAction" | cut -d" " -f3)
+		[[ "$STATUSQUO" == "start" ]] && SWITCH=SYNC || SWITCH=START
+     		;;
+esac
+
+
+
+# Zeile aus start.conf extrahieren
+OLDLINE=$(grep "$LABEL" "$STARTCONF")
+
+case "$SWITCH" in
+	START)
+		echo -e "DefaultAction auf \e[00;31mstart OHNE Sync\e[00m schalten..."
+		NEWLINE=$(echo $OLDLINE | sed -e 's/[sS][yY][nN][cC]/start/g')
+            	;;
+
+	SYNC)
+		echo -e "DefaultAction auf \e[00;32mSYNC\e[00m schalten..."
+		NEWLINE=$(echo $OLDLINE | sed -e 's/[sS][tT][aA][rR][tT]/sync/g')
+            	;;
+
+  	*) 
+		echo "Irgendwas ist schief gelaufen, diese Zeile hätte nie ausgeführt werden dürfen..." >&2
+		exit 1
+     		;;
+esac
+
+sed -e "s/$OLDLINE/$NEWLINE/g" -i $STARTCONF
+STATUSQUO=$(grep "$LABEL" "$STARTCONF" |grep efaultAction | cut -d" " -f3)
+echo -e "DefaultAction in $STARTCONF ist jetzt:  $STATUSQUO"
+
+
