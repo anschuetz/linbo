@@ -1,0 +1,45 @@
+activate_localuser() {
+        ######################################################
+        # Diese Funktion (de-)aktiviert den lokalen User "schueler" 
+        # Aufruf: activate_localuser on|off
+        #######################################################
+
+	[ $(grep -e 'schueler:!' /mnt/etc/shadow) ] && STATUS=DEAKTIVIERT || STATUS=AKTIV
+
+	case "$1" in
+        	on)
+                	case "$STATUS" in
+                        	AKTIV)
+                                	echo User ist bereits aktiv. Keine Aktion nötig.
+                                	;;
+	                        DEAKTIVIERT)
+	                                echo aktiviere User \"schueler\"
+	                                sed -e "s/schueler:\!/schueler:/g" -i /mnt/etc/shadow
+	                                ;;
+	                        *)
+	                                echo 'diese Programmzeile hätte nie aufgerufen werden dürfen...'
+	                                echo 'Skript kontrollieren!'
+	                esac
+	                ;;
+	        off)
+	                case "$STATUS" in
+	                        AKTIV)
+	                                echo Status: $STATUS
+	                                echo deaktiviere User
+	                                sed -e "s/schueler:/schueler:\!/g" -i /mnt/etc/shadow
+	                                ;;
+	                        DEAKTIVIERT)
+	                                echo User ist bereits inaktiv. Keine Aktion nötig.
+	                                ;;
+	                        *)
+	                                echo 'diese Programmzeile hätte nie aufgerufen werden dürfen...'
+	                                echo 'Skript kontrollieren!'
+	                                ;;
+	                esac
+	                ;;
+	        *)
+	                echo 'diese Programmzeile hätte nie aufgerufen werden dürfen...'
+	                echo 'Skript kontrollieren!'
+	                ;;
+	esac
+} # Ende Funktion activate-localuser()
