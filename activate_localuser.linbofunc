@@ -1,45 +1,50 @@
 activate_localuser() {
         ######################################################
-        # Diese Funktion (de-)aktiviert den lokalen User "$ACCOUNTNAME" 
-        # Aufruf: activate_localuser on|off
+        # Diese Funktion (de-)aktiviert alle lokalen User, die
+        # in der Liste ACCOUNTNAMES stehen.
+        # Aufruf: activate_localusers on|off
         #######################################################
-	ACCOUNTNAME=schueler
-	[ $(grep -e "^$ACCOUNTNAME:\!" /mnt/etc/shadow) ] && STATUS=DEAKTIVIERT || STATUS=AKTIV
+        ACCOUNTNAMES="schueler1 schueler2 schueler3"
+        for ACCOUNTNAME in $ACCOUNTNAMES
+        do
+          User="User \"$ACCOUNTNAME\""
+          [ $(grep -e "^$ACCOUNTNAME:\!" /etc/shadow) ] && STATUS=DEAKTIVIERT || STATUS=AKTIV
 
-	case "$1" in
-        	on)
-                	case "$STATUS" in
-                        	AKTIV)
-                                	echo "User ist bereits aktiv. Keine Aktion nötig."
-                                	;;
-	                        DEAKTIVIERT)
-	                                echo aktiviere User \"$ACCOUNTNAME\"
-	                                sed -e "s/^$ACCOUNTNAME:\!/$ACCOUNTNAME:/g" -i /mnt/etc/shadow
-	                                ;;
-	                        *)
-	                                echo 'diese Programmzeile hätte nie aufgerufen werden dürfen...'
-	                                echo 'Skript kontrollieren!'
-	                esac
-	                ;;
-	        off)
-	                case "$STATUS" in
-	                        AKTIV)
-	                                echo Status: $STATUS
-	                                echo deaktiviere User
-	                                sed -e "s/^$ACCOUNTNAME:/$ACCOUNTNAME:\!/g" -i /mnt/etc/shadow
-	                                ;;
-	                        DEAKTIVIERT)
-	                                echo "User ist bereits inaktiv. Keine Aktion nötig."
-	                                ;;
-	                        *)
-	                                echo 'diese Programmzeile hätte nie aufgerufen werden dürfen...'
-	                                echo 'Skript kontrollieren!'
-	                                ;;
-	                esac
-	                ;;
-	        *)
-	                echo 'diese Programmzeile hätte nie aufgerufen werden dürfen...'
-	                echo 'Skript kontrollieren!'
-	                ;;
-	esac
+                case "$1" in
+                        on)
+                                case "$STATUS" in
+                                        AKTIV)
+                                                echo "$User ist bereits aktiv. Keine Aktion nötig."
+                                                ;;
+                                        DEAKTIVIERT)
+                                                echo "aktiviere $User"
+                                                sed -e "s/^$ACCOUNTNAME:\!/$ACCOUNTNAME:/g" -i /etc/shadow
+                                                ;;
+                                        *)
+                                                echo 'diese Programmzeile hätte nie aufgerufen werden dürfen...'
+                                                echo 'Skript kontrollieren!'
+                                esac
+                                ;;
+                        off)
+                                case "$STATUS" in
+                                        AKTIV)
+                                                echo "deaktiviere $User"
+                                                sed -e "s/^$ACCOUNTNAME:/$ACCOUNTNAME:\!/g" -i /etc/shadow
+                                                ;;
+                                        DEAKTIVIERT)
+                                                echo "$User ist bereits deaktiviert. Keine Aktion nötig."
+                                                ;;
+                                        *)
+                                                echo 'diese Programmzeile hätte nie aufgerufen werden dürfen...'
+                                                echo 'Skript kontrollieren!'
+                                                ;;
+                                esac
+                                ;;
+                        *)
+                                echo 'diese Programmzeile hätte nie aufgerufen werden dürfen...'
+                                echo 'Skript kontrollieren!'
+                                ;;
+                esac
+        done
 } # Ende Funktion activate-localuser()
+
