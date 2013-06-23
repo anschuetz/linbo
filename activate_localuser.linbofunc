@@ -5,10 +5,11 @@ activate_localuser() {
         # Aufruf: activate_localusers on|off
         #######################################################
         ACCOUNTNAMES="schueler1 schueler2 schueler3"
+	SHADOW=/mnt/etc/shadow
         for ACCOUNTNAME in $ACCOUNTNAMES
         do
           User="User \"$ACCOUNTNAME\""
-          [ $(grep -e "^$ACCOUNTNAME:\!" /etc/shadow) ] && STATUS=DEAKTIVIERT || STATUS=AKTIV
+          [ $(grep -e "^$ACCOUNTNAME:\!" $SHADOW) ] && STATUS=DEAKTIVIERT || STATUS=AKTIV
 
                 case "$1" in
                         on)
@@ -18,7 +19,7 @@ activate_localuser() {
                                                 ;;
                                         DEAKTIVIERT)
                                                 echo "aktiviere $User"
-                                                sed -e "s/^$ACCOUNTNAME:\!/$ACCOUNTNAME:/g" -i /etc/shadow
+                                                sed -e "s/^$ACCOUNTNAME:\!/$ACCOUNTNAME:/g" -i $SHADOW
                                                 ;;
                                         *)
                                                 echo 'diese Programmzeile hätte nie aufgerufen werden dürfen...'
@@ -29,7 +30,7 @@ activate_localuser() {
                                 case "$STATUS" in
                                         AKTIV)
                                                 echo "deaktiviere $User"
-                                                sed -e "s/^$ACCOUNTNAME:/$ACCOUNTNAME:\!/g" -i /etc/shadow
+                                                sed -e "s/^$ACCOUNTNAME:/$ACCOUNTNAME:\!/g" -i $SHADOW
                                                 ;;
                                         DEAKTIVIERT)
                                                 echo "$User ist bereits deaktiviert. Keine Aktion nötig."
