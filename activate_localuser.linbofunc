@@ -10,7 +10,7 @@ activate_localuser() {
         	on)
                 	case "$STATUS" in
                         	AKTIV)
-                                	echo User ist bereits aktiv. Keine Aktion nötig.
+                                	echo "User ist bereits aktiv. Keine Aktion nötig."
                                 	;;
 	                        DEAKTIVIERT)
 	                                echo aktiviere User \"$ACCOUNTNAME\"
@@ -29,7 +29,7 @@ activate_localuser() {
 	                                sed -e "s/^$ACCOUNTNAME:/$ACCOUNTNAME:\!/g" -i /mnt/etc/shadow
 	                                ;;
 	                        DEAKTIVIERT)
-	                                echo User ist bereits inaktiv. Keine Aktion nötig.
+	                                echo "User ist bereits inaktiv. Keine Aktion nötig."
 	                                ;;
 	                        *)
 	                                echo 'diese Programmzeile hätte nie aufgerufen werden dürfen...'
