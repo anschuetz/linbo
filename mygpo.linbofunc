@@ -1,0 +1,29 @@
+mygpo() {
+        ######################################################                                                                                                
+        # Kopiert Dateien unter /var/linbo/hwk in den Cache und den Client                                                                                    
+        #                                                                                                                                                     
+        # * Dateien unter /var/linbo                                                                                                                          
+        # hwk1/...                          hardwareklassen-spezifisch                                                                                        
+        # hwk1/workstations/hostname1/...   hostname-spezifisch                                                                                               
+        # ablegen oder hard-link-verlinken.                                                                                                                   
+        # * Datei-rechte und -owner sollten wie auf dem Zielsystem sein.                                                                                      
+        #                                                                                                                                                     
+        # Bugs:                                                                                                                                               
+        # * Dateien auf dem server müssen von nobody:nogroup lesbar sein.                                                                                     
+        #######################################################                                                                                               
+        myserverip="$(grep ^linbo_server /tmp/dhcp.log | tail -1 | awk -F\' '{ print $2 }')"  # Server-IP ermitteln                                           
+        group="$(hostgroup)"
+
+        # Wenn Netzwerkverbindung vorhanden ist, lade                                                                                                         
+        # Dateien in den lokalen Cache herunter.                                                                                                              
+        if ! localmode; then
+                echo "Sync linbo-repo::$group -> /cache/postsync/ ..."
+                rsync -avPL --numeric-ids --delete "$myserverip::linbo/$group/" --exclude "- /workstations" "/cache/postsync/"
+                echo "Sync linbo-repo::$group/workstations/$HOSTNAME -> /cache/postsync/ ..."
+                rsync -avPL --numeric-ids "$myserverip::linbo/$group/workstations/$HOSTNAME/" "/cache/postsync/"
+        fi
+        # Kopiere die Dateien auf die Betriebssystempartition.                                                                                                
+        echo "Sync /cache/postsync/ nach /mnt/ ..."
+        rsync -aL --numeric-ids "/cache/postsync/" "/mnt/"
+}
+
