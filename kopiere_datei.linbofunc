@@ -28,6 +28,7 @@ kopiere_datei() {
         # auf der Betriebssystempartition.
         if [ -s "/cache/$myfile" ]; then
                 echo "Kopiere $myfile nach /mnt/$mytarget ..."
+		mkdir -p "/mnt/$(dirname $mytarget)"
                 cp "/cache/$myfile" "/mnt/$mytarget"
         fi
 
