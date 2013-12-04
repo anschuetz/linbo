@@ -1,6 +1,9 @@
 #/bin/bash
 # Zurückschreiben etwaiger Linbo-Remote-Verknüpfungen
 # Achtung: vor Aufruf sicherstellen, dass kein Linbo-Remote mehr läuft
+# Skript von Thomas Schröder 
+# Info: http://www.linuxmuster.net/anwenderwiki:linbo:linbo_resetstart
+
 cd /var/linbo; i=0
 for f in $(ls start.conf-* 2>/dev/null); do
   if ! [[ $(echo $f | cut -d "." -f "6") -eq "" ]]; then
