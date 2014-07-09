@@ -1,0 +1,107 @@
+#!/bin/bash
+# save2postsync - 05/2014 Jesko.Anschuetz@linuxmuster.net
+# copies a file / folder to /var/linbo/linuxmuster-client/$patchclass
+#
+# ATTENTION: THIS SCRIPT CANNOT COPY LINKS! IT WILL COPY THE LINK-TARGETS INSTEAD 
+#
+# change variables for your needs:
+server="server"  # name of your server as it can be found via nslookup
+patchpath="/var/linbo/linuxmuster-client/"
+patchclass="ubuntu1204" # folder in patchpath as found in universal postsync-script
+
+
+# Messages:
+TEXT_START="Los gehts..."
+TEXT_NOT_REACHEABLE=' ist nicht erreichbar!'
+TEXT_WHERE_TO_CONFIGURE='Konfiguriere den richtigen Servernamen in '
+TEXT_USAGE="\n\nUSAGE: $0 SOURCE TARGET\n\tSOURCE: Eine Datei oder ein Verzeichnis\n\tTARGET: common oder der zu patchende Raum oder Rechner.\nBeispiel: $0 /etc/hosts r100-pc01"
+TEXT_SOURCE_NOT_FOUND=": Datei oder Verzeichnis existiert nicht."
+TEXT_CANCEL=" ABBRUCH..."
+TEXT_NODIR_NOTEXIST=" existiert nicht oder ist kein Verzeichnis."
+TEXT_IS_LINK=" ist ein symbolischer Link. Dieses Skript kopiert nur echte Dateien."
+TEXT_INSTALL_SSHPASS="sshpass ist nicht installiert. Versuche es zu installieren"
+TEXT_HLINE="--------------------------------------------------------------------"
+TEXT_MKDIR="Lege Verzeichnis auf dem Server an: "
+TEXT_COPYFILES="Kopiere Dateien zum Server..."
+TEXT_OK="Alles OK..."
+# save arguments
+
+SOURCE=${1%/}  # remove trailing "/"
+TARGET=${2#/} # remove leading "/"
+TARGET=${2%/} # remove trailing "/"
+
+
+# sshpass installed? If not, do it...
+if ! which sshpass > /dev/null ; then
+  echo $TEXT_HLINE
+  echo $TEXT_INSTALL_SSHPASS
+  apt-get install -y sshpass
+  echo $TEXT_HLINE
+fi
+
+# server reacheable? If not... exit...
+if ! ping -c1 -w1 $server &> /dev/null ; then
+  echo $server $TEXT_NOT_REACHEABLE
+  echo $TEXT_WHERE_TO_CONFIGURE $0
+  echo $TEXT_CANCEL
+  exit 1
+fi
+
+# two arguments given? if not... exit...
+if [[ ! "$#" == 2 ]] ; then
+  echo -e $TEXT_USAGE
+  exit 1
+fi
+
+# is given source a symbolic link? Then exit...
+if test -L $SOURCE ; then
+  echo $SOURCE $TEXT_IS_LINK
+  echo $TEXT_CANCEL
+  exit 1
+fi
+
+# does source exist? If not... exit...
+if [[ ! -e $SOURCE ]] ; then
+  echo $SOURCE $TEXT_SOURCE_NOT_FOUND $TEXT_CANCEL
+  exit 1
+fi
+
+# get full Path of SOURCE
+SOURCEPATH=$(dirname $(readlink -e $SOURCE))
+
+# remove trailing AND leading Slashes
+SOURCEPATH=${SOURCEPATH#/}
+SOURCEPATH=${SOURCEPATH%/}
+
+PATCHPATH=${patchpath%/}
+PATCHPATH=${PATCHPATH#/}
+
+PATCHCLASS=${patchclass#/}
+PATCHCLASS=${PATCHCLASS%/}
+
+TARGET=${TARGET#/}
+TARGET=${TARGET%/}
+
+
+# Lets go.
+echo $TEXT_START
+
+CREATEPATH=$(echo /$PATCHPATH/$PATCHCLASS/$TARGET/$SOURCEPATH)
+
+# create dir on server
+if [ -d /$SOURCEPATH ] ; then
+  stty -echo
+  read -p "root@${server}'s Password: " passw; echo
+  stty echo
+  echo $TEXT_MKDIR $CREATEPATH
+  sshpass -p $passw ssh root@$server mkdir -p $CREATEPATH
+  echo $TEXT_COPYFILES
+  sshpass -p $passw scp -r $SOURCE root@$server:$CREATEPATH/
+else
+  echo $SOURCEPATH $TEXT_NODIR_NOTEXIST $TEXT_CANCEL
+  exit 1
+fi
+
+
+echo $TEXT_OK
+

@@ -28,7 +28,7 @@ fi
 
 # Label nicht vorhanden oder mehrdeutig
 UNIQUE=$(grep "$LABEL" "$STARTCONF" | grep -c "utostart")
-if [[ $UNIQUE != 1 ]]
+if [ "$UNIQUE" != "1" ]
 then
 	echo Label nicht vorhanden, nicht eindeutig oder nicht in einer Autostart-Zeile... >&2
 	echo 'USAGE: autostart <GRUPPE> <LABEL> <yes|no|status>'
@@ -50,7 +50,7 @@ case "$3" in
 		exit 0
             	;;
 
-  	*) 
+  	*)
 		STATUSQUO=$(grep "$LABEL" "$STARTCONF" |grep utostart | cut -d" " -f3)
 		[[ "$STATUSQUO" == "yes" ]] && SWITCH=OFF || SWITCH=ON
      		;;
@@ -72,7 +72,7 @@ case "$SWITCH" in
 		NEWLINE=$(echo $OLDLINE | sed -e 's/[nN][oO]/yes/g')
             	;;
 
-  	*) 
+  	*)
 		echo "Irgendwas ist schief gelaufen, diese Zeile hätte nie ausgeführt werden dürfen..." >&2
 		exit 1
      		;;

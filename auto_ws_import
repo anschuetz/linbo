@@ -1,0 +1,110 @@
+#!/bin/bash
+
+useLinboPipes="no"
+tmpDatei="/tmp/autowsimport"
+tmpDateiIP=$tmpDatei.IP
+tmpDateiIPclean=$tmpDateiIP.clean
+tmpDateiMAC=$tmpDatei.MAC
+tmpWorkstations=$tmpDatei.workstations
+tmpDateiLinboRemote=$tmpDatei.linboremote
+workstations=/etc/linuxmuster/workstations
+defaultNetzMaske="255.240.0.0"
+defaultRaumName="none"
+defaultRaumIP="10.16.101"
+defaultGruppe="lenny"
+remoteCommands="partition,format,initcache,sync:1,halt"
+warteZeit=60
+
+tmpDatei_auswerten() {
+  echo
+  echo 'Log-Aufzeichnung beendet... beginne mit der Auswertung.'
+  echo Raum-Name: $raumname
+  echo Raum-IP: $raumip
+  echo Netzmaske: $netzmaske
+  echo Hardware-Gruppe: $gruppe
+  echo neue MAC-Adressen:
+  # MAC-Adressen nach $tmpDatei.MAC
+  cat $tmpDatei | grep 'DHCPOFFER on 10\.16\.1\.1' | awk -F'to ' '{print $2}'| awk -F' via' '{print $1}' | sed -e 's/ //g' > $tmpDateiMAC
+  cat $tmpDatei | grep 'DHCPOFFER on 10\.16\.1\.1' | awk -F'on ' '{print $2}'| awk -F' to' '{print $1}' | sed -e 's/ //g' | uniq > $tmpDateiIP
+
+  # Für jede MAC Adresse einen Eintrag in die tmp-Workstations-Datei schreiben...
+  for MAC in $(cat $tmpDateiMAC|uniq)
+  do
+    echo $raumName';'$raumName-pc$(printf "%02i" $i)';'$gruppe';'$MAC';'$(echo $raumIP.$i|sed -e 's/\.\+/\./g')';'$netzMaske';1;1;1;1;1' >> $tmpWorkstations
+    echo $raumName-pc$(printf "%02i" $i) >> $tmpDateiLinboRemote
+    let i=i+1
+  done
+
+  echo 'Folgende Workstations werden neu aufgenommen:'
+  cat $tmpWorkstations
+  # workstations erstmal backuppen...
+  cp $workstations $workstations.$(date '+%Y%m%d-%H%M%S')
+  # an die Workstations-Datei anhängen und importieren
+  cat $tmpWorkstations >> $workstations
+  import_workstations
+
+  # jetzt linbo-remote-Pipes erstellen für jeden aufgenommenen Rechner... benötigt neueste Linbo-Version, momentan noch testing...
+if [[ "$useLinboPipes" == "yes" ]]
+then
+  for neuerRechner in $(cat $tmpDateiLinboRemote)
+  do
+    linbo-remote -p -i $neuerRechner -c $remoteCommands  
+  done
+fi
+  # IP-Adressen der pxeclients sortieren und doppelte wegschmeißen:
+  cat $tmpDateiIP | sort | uniq >> $tmpDateiIPclean
+
+  # linbo-ssh für jede erreichbare IP --> neustart...
+  for rechner in $(cat $tmpDateiIPclean)
+     do
+	if ping -w 1 -c 1 $rechner -w1 >/dev/null
+    then
+    	linbo-ssh $rechner reboot
+    fi
+  done
+
+ # für "alte" linbo-Versionen:
+ # warten, bis die Rechner alle neu gestartet sind
+
+if [[ "$useLinboPipes" == "no" ]]
+then
+  echo "warte, bis die Rechner wieder im Linbo sind..."
+  sleep $warteZeit
+  for neuerRechner in $(cat $tmpDateiLinboRemote)
+  do
+    linbo-remote -i $neuerRechner -c $remoteCommands
+  done
+fi
+
+# aufräumen:
+  for datei in $tmpDateiIP $tmpDateiMAC $tmpWorkstations $tmpDateiIPclean $tmpDateiLinboRemote $tmpDatei
+  do
+  	[[ -e $datei ]] && rm $datei
+  done
+
+  exit 0
+}
+
+datenErfassen() {
+  echo -n "Raum-Name: [$defaultRaumName] "
+  read raumName
+  echo -n "Raum-IP-Adresse (ohne 4.Oktett): [$defaultRaumIP] "
+  read raumIP
+  echo -n "gruppe: [$defaultGruppe] "
+  read gruppe
+
+  [[ "$raumName" == "" ]] && raumName=$defaultRaumName
+  [[ "$raumIP" == "" ]] && raumIP=$defaultRaumIP
+  [[ "$netzMaske" == "" ]] && netzMaske=$defaultNetzMaske
+  [[ "$gruppe" == "" ]] && gruppe=$defaultGruppe
+  i=1
+}
+
+trap 'tmpDatei_auswerten' 2
+
+datenErfassen
+#tmpDatei_auswerten
+
+echo "Bitte jetzt nacheinander in der gewünschten Reihenfolge die aufzunehmenden Rechner starten."
+echo "Wenn alle Rechner den leeren Linbo-Bildschirm zeigen, STRG-C drücken..."
+tail -f /var/log/syslog > $tmpDatei
