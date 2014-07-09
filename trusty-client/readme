@@ -1,0 +1,35 @@
+#############################################################################################
+#  Installations-Skript für den Linuxclient     jesko.anschuetz@linuxmuster.net - Juli 2014 #
+#############################################################################################
+
+
+
+Was tut das Skript?
+- Einrichten des Ubuntu-Clients für Linbo.
+- Einrichten des universellen Postsyncs
+
+Was ist danach zu tun?
+- Entweder in /etc/linuxmuster/workstations (oder über die Schulkonsole) Rechner in die richtige Gruppe stecken (so wie die start.conf heißt)
+  oder die start.conf.trusty-linuxmuster bearbeiten und umbenennen, dass sie zu der Gruppe passt, die schon vorhanden ist.
+- evtl die Partitionierung anpassen.
+
+
+Voraussetzungen:
+
+Das Verzeichnis enthält:
+- installiere-linuxmusterclient Skript
+- Verzeichnis "common": Enthält alles, was per Postsync auf alle Clients soll
+- ein cloop (z.B. trusty-linuxmuster.cloop)
+- eine start.conf, die genau so heißt, wie das cloop (z.B. start.conf.trusty-linuxmuster)
+- ein universelles Postsync-Skript, was auch so heißt (z.B. trusty-linuxmuster.cloop.postsync)
+
+
+Anwendung:
+
+- Alle Dateien auf den Server kopieren (z.B. nach /tmp oder /root/linuxclient)
+- installiere-linuxmusterclient ausführbar machen mit chmod +x ...
+- ./installiere-linuxmusterclient aufrufen.
+
+fertig.
+
+

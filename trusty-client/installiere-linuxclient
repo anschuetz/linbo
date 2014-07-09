@@ -1,62 +1,126 @@
 #!/bin/bash
+#############################################################################################
+#  Installations-Skript für den Linuxclient     jesko.anschuetz@linuxmuster.net - Juli 2014 #
+#############################################################################################
 clear
-# Konfiguriere ab hier nach Bedarf...
-	linbodir="/tmp/var/linbo"
+############################################################################
+# Es sollte IN ALLER REGEL keine Notwendigkeit für Änderungen geben...     #
+# Ändere also nur, wenn du genau weißt, was du tust!                       #
+############################################################################
+if [[ ! "$USER" == "root" ]]
+then
+  echo "Dieses Skript muss als root laufen. ...Abbruch"
+  exit 1
+fi
 
-# Konfig für linuxmuster-client.cloop
-	cloopfile="trusty-linuxmuster.cloop"
-	startconffile="start.conf.trusty-linuxmuster"
-
+linbodir="/tmp/var/linbo"
 # Konfig für universal postsync
-	universalpostsyncdir="linuxmuster-client"
-	versiondir="trusty" # wichtig für Sicherheitskopie...
+universalpostsyncdir="linuxmuster-client"
 
-# zu kopierende Dateien:
-	postsyncfile="${cloopfile}.postsync"
-	filestolinbo="${cloopfile} ${startconffile} ${postsyncfile}"
 
-# ende des Config-Bereichs
 # Beginn des Install-Skriptes...
+# Ohne das Linbo-Verzeichnis macht das ganze Skript keinen Sinn... also abbrechen.
+if [[ ! -d ${linbodir} ]]
+then
+  echo "Linboverzeichnis existiert nicht. Bitte Skript ($0) richtig konfigurieren."
+  echo -e "...Abbruch\n\n"
+  exit 1
+fi
 
-	if [[ ! -d ${linbodir} ]]
-	then
-	  echo "Linboverzeichnis existiert nicht. Bitte Skript ($0) richtig konfigurieren."
-	  echo -e "...Abbruch\n\n"
-	  exit 1
-	fi
+
+# Automatische Konfiguration versuchen. Dazu darf nur genau 1 .cloop Datei mit im Verzeichnis liegen.
+# Wenn das nicht der Fall ist, abbrechen.
+
+if [[ $(ls *.cloop | wc -l) != 1 ]]
+then
+  echo "Es gibt keine oder mehr als eine .cloop-Datei in diesem Verzeichnis. Das kann nicht gewollt sein."
+  echo "Abbruch..."
+  exit 1
+fi
+
+
+# Wenn die Variable $cloopfile nicht definiert ist (default), dann ermittle den Namen der cloop-Datei
+if [[ "$cloopfile" == "" ]]
+then
+  cloop=*.cloop
+  cloopfile=$(echo $cloop)
+fi
+
+
+# Das selbe für die Start.conf Datei. Sie muss so heißen, wie die cloop-Datei (start.conf.NAME_OHNE_".cloop")
+if [[ "$startconffile" == "" ]]
+then
+  startconffile=start.conf.${cloopfile%.cloop}
+fi
+
+
+# Die Postsync-Datei MUSS so heißen, wie die cloop-Datei mit .postsync dahinter.
+postsyncfile="${cloopfile}.postsync"
+
+
+
+# zu kopierende Dateien: (Default ist cloop, startconf und postsync-datei) 
+filestolinbo="${cloopfile} ${startconffile} ${postsyncfile}"
+
+# aus dem Postsync-Skript wird die Patchklasse ermittelt.
+
+patchclass=$(grep "PATCHCLASS=" "${postsyncfile}" | cut -d"=" -f2 | sed 's/"//g')
+
+
+echo "Zusammenfassung:"
+echo "----------------"
+echo "start.conf: $startconffile"
+echo "cloop: $cloopfile"
+echo "patchclass: $patchclass"
+echo "postsyncfile: $postsyncfile"
+echo "files to linbo: $filestolinbo"
+
+
 
 # Dateien ins Linboverzeichnis kopieren
-	for file in ${filestolinbo} 
-	do 
-	 if [[ ! "${file}" == "" ]]
-	 then # wenn file nicht leer ist... 
-
-	  if [[ -e ${linbodir}/${file} ]]
+for file in ${filestolinbo}
+do
+  if [[ ! "${file}" == "" ]]
+  then  # wenn eine Datei übergeben worden ist: prüfen, ob sie existiert und ob das Ziel schon existiert und im Fall zur
+	# Sicherheit mit Zeitstempel versehen.
+	if [[ -e "${file}" ]]
+	then
+	  if [[ -e "${linbodir}/${file}" ]]
 	  then
-	    echo ${file} existiert. Sicherungskopie...
-	    cp ${linbodir}/${file} ${linbodir}/${file}.$(date +"%Y%m%d%H%M")
+	      echo "${file} existiert. Sicherungskopie..."
+	      cp "${linbodir}/${file}" "${linbodir}/${file}".$(date +"%Y%m%d%H%M%S")
 	  fi
-	  echo "Kopiere ${file} nach ${linbodir}/"
-	  cp ${file} ${linbodir}/${file}
+
+	  # Datei kopieren und Rechte anpassen
+	  echo -n "Kopiere ${file} nach ${linbodir}/"
+	  cp "${file}" "${linbodir}/${file}" && echo "...OK." || echo "...failed"
 	  echo "setze Dateirechte"
-	  chown root:root ${linbodir}/${file}
-	  chmod 664 ${linbodir}/${file}
-
-	 else 
-	# wenn $file leer ist... 
+	  chown root:root "${linbodir}/${file}" && echo "...OK." || echo "...failed"
+	  chmod 664 "${linbodir}/${file}"  && echo "...OK." || echo "...failed"
+	else
+	  echo -e "\e[00;31m ${file} fehlt zu Installation... bitte Konfiguration überprüfen.\e[00m"
+	  if [[ -e "${linbodir}/${file}" ]]
+	  then
+		echo -e "\e[01;32mDie Datei ist allerdings in ${linbodir} schon vorhanden. Wenn das Absicht war, ist alles gut.\e[00m"
+	  fi
+	fi
+  else
+	# wenn aus welchen Gründen auch immer kein $file übergeben wurde...
 	 echo "nichts zu tun..."
-	fi 
-	done
+  fi
+done
 
-# Postsync-Baum kopieren...
-	if [[ -e ${linbodir}/${universalpostsyncdir}/${versiondir} ]]
+# Postsync-Baum kopieren... vorher Sicherung erstellen von vorhandenem Verzeichnisbaum
+if [[ -e "${linbodir}/${universalpostsyncdir}/${patchclass}" ]]
 	then
 	  echo Postsync-Baum existiert. Sicherungskopie...
-	  mv ${linbodir}/${universalpostsyncdir} ${linbodir}/${universalpostsyncdir}.$(date +"%Y%m%d%H%M")
+	  mv "${linbodir}/${universalpostsyncdir}" "${linbodir}/${universalpostsyncdir}".$(date +"%Y%m%d%H%M%S")
 	fi
+
+	# Verzeichnisbaum erstellen
+	mkdir -p "${linbodir}/${universalpostsyncdir}/${patchclass}/common"
 	echo Kopiere Postsync-Baum...
-	mkdir -p ${linbodir}/${universalpostsyncdir}
-	cp -r ${universalpostsyncdir} ${linbodir}
+	cp -r common "${linbodir}/${universalpostsyncdir}/${patchclass}"
 
 	echo fertig
 
