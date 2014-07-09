@@ -1,0 +1,15 @@
+Um das Ganze zu vorzubereiten muss folgendes gemacht werden:
+
+die Dummy-Dateien müssen durch vernünftige Dateien ERSETZT werden.
+(Sie können anders heißen, müssen aber den selben "Namenszusammenhang" aufweisen wie die Dummy-Dateien)
+
+Dann sollte das Ganze am Besten irgendwo hin, wo man es am Stück herunterladen kann... linuxmuster.net?
+
+Anschließend könnte man sich noch überlegen, ob man das als tgz-Datei hochlädt und ein Install-Skript schreibt, welches
+- tgz runterlädt
+- auspackt
+- installiert
+
+alles in einem :)
+Def wär fubber
+
