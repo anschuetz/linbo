@@ -28,6 +28,8 @@ Anwendung:
 
 - Alle Dateien auf den Server kopieren (z.B. nach /tmp oder /root/linuxclient)
 - installiere-linuxmusterclient ausführbar machen mit chmod +x ...
+- in diesem Skript die Variable "linbodir" anpassen (Ausgeliefert wird aus Sicherheitsgründen mit "/tmp/var/linbo")
+  das "/tmp" muss für den echten Betrieb weg...
 - ./installiere-linuxmusterclient aufrufen.
 
 fertig.
