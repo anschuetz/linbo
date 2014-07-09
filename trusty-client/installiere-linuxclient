@@ -1,0 +1,62 @@
+#!/bin/bash
+clear
+# Konfiguriere ab hier nach Bedarf...
+	linbodir="/tmp/var/linbo"
+
+# Konfig für linuxmuster-client.cloop
+	cloopfile="trusty-linuxmuster.cloop"
+	startconffile="start.conf.trusty-linuxmuster"
+
+# Konfig für universal postsync
+	universalpostsyncdir="linuxmuster-client"
+	versiondir="trusty" # wichtig für Sicherheitskopie...
+
+# zu kopierende Dateien:
+	postsyncfile="${cloopfile}.postsync"
+	filestolinbo="${cloopfile} ${startconffile} ${postsyncfile}"
+
+# ende des Config-Bereichs
+# Beginn des Install-Skriptes...
+
+	if [[ ! -d ${linbodir} ]]
+	then
+	  echo "Linboverzeichnis existiert nicht. Bitte Skript ($0) richtig konfigurieren."
+	  echo -e "...Abbruch\n\n"
+	  exit 1
+	fi
+
+# Dateien ins Linboverzeichnis kopieren
+	for file in ${filestolinbo} 
+	do 
+	 if [[ ! "${file}" == "" ]]
+	 then # wenn file nicht leer ist... 
+
+	  if [[ -e ${linbodir}/${file} ]]
+	  then
+	    echo ${file} existiert. Sicherungskopie...
+	    cp ${linbodir}/${file} ${linbodir}/${file}.$(date +"%Y%m%d%H%M")
+	  fi
+	  echo "Kopiere ${file} nach ${linbodir}/"
+	  cp ${file} ${linbodir}/${file}
+	  echo "setze Dateirechte"
+	  chown root:root ${linbodir}/${file}
+	  chmod 664 ${linbodir}/${file}
+
+	 else 
+	# wenn $file leer ist... 
+	 echo "nichts zu tun..."
+	fi 
+	done
+
+# Postsync-Baum kopieren...
+	if [[ -e ${linbodir}/${universalpostsyncdir}/${versiondir} ]]
+	then
+	  echo Postsync-Baum existiert. Sicherungskopie...
+	  mv ${linbodir}/${universalpostsyncdir} ${linbodir}/${universalpostsyncdir}.$(date +"%Y%m%d%H%M")
+	fi
+	echo Kopiere Postsync-Baum...
+	mkdir -p ${linbodir}/${universalpostsyncdir}
+	cp -r ${universalpostsyncdir} ${linbodir}
+
+	echo fertig
+
