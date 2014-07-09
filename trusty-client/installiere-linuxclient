@@ -53,14 +53,13 @@ then
   startconffile=start.conf.${cloopfile%.cloop}
 fi
 
-
 # Die Postsync-Datei MUSS so heißen, wie die cloop-Datei mit .postsync dahinter.
 postsyncfile="${cloopfile}.postsync"
 
 
 
 # zu kopierende Dateien: (Default ist cloop, startconf und postsync-datei) 
-filestolinbo="${cloopfile} ${startconffile} ${postsyncfile}"
+filestolinbo="${cloopfile} ${cloopfile}.desc ${cloopfile}.info ${cloopfile}.macct ${cloopfile}.torrent ${startconffile} ${postsyncfile}"
 
 # aus dem Postsync-Skript wird die Patchklasse ermittelt.
 
