@@ -1,7 +1,7 @@
     echo "##### trusty-linuxmuster POSTSYNC BEGIN #####"
      
     # IP-Adresse des Server
-    SERVERIP=10.16.1.1
+    SERVERIP="$(grep ^linbo_server /tmp/dhcp.log | tail -1 | awk -F\' '{ print $2 }')"
     STARTCONF=/cache/start.conf
      
     # Raum feststellen. Dieses Skript geht davon aus
@@ -71,9 +71,9 @@
     sed -i "s/HOSTNAME/$HOSTNAME/g" /mnt/etc/hosts     
 
     # fstab anpassen, damit Swap-Partition stimmt
-    SWAP=$(sed ':a;N;$!ba;s/\n/;UMBRUCH;/g' start.conf  | sed 's/ //g'|sed 's/\[Partition\]/\n/g' | grep -i 'fstype=swap' | sed 's/;UMBRUCH;/\n/g' | grep -i 'dev=/' | cut -d'=' -f2 | head -c9)
+    SWAP=$(sed ':a;N;$!ba;s/\n/;UMBRUCH;/g' $STARTCONF | sed 's/ //g'|sed 's/\[Partition\]/\n/g' | grep -i 'fstype=swap' | sed 's/;UMBRUCH;/\n/g' | grep -i 'dev=/' | cut -d'=' -f2 | head -c9)
     sed -i "s/#dummyswap/$SWAP/g" /mnt/etc/fstab    
-
+    sed -i "s/#serverip/$SERVERIP/g" /mnt/etc/fstab
     echo "##### POSTSYNC END #####"
 
 

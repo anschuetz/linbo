@@ -143,10 +143,11 @@ echo "# Diese Datei wird per postsync gepatcht. Zu bearbeiten ist sie auf dem Se
 echo "# Pfad: ${linbodir}/${universalpostsyncdir}/${patchclass}/${HOSTS}" >> ${HOSTS}
 echo "# HOSTNAME wird im Postsyncskript mit dem echten Namen gepatcht" >> ${HOSTS}
 echo "127.0.0.1    HOSTNAME" >> ${HOSTS}
-echo -e "\nDie nächste Zeile ist so, wie sie auf dem Server eingetragen ist..." >> ${HOSTS}
-cat /etc/hosts | grep -e "^10" >> ${HOSTS}
+echo -e "\nDie nächste Zeile enthält die Hostnamen so, wie sie auf dem Server eingetragen sind..." >> ${HOSTS}
+
+echo $(cat /etc/hosts | grep -e "^10" | sed "s/${SERVERIP}/#SERVERIP/g")     >> ${HOSTS}
 echo "# damit CUPS zufrieden ist, muss noch diese Zeile hier dazu:" >> ${HOSTS}
-echo "${SERVERIP}  server.lokal server.local" >> ${HOSTS}
+echo "#SERVERIP  server.lokal server.local" >> ${HOSTS}
 
 # Postsync-Baum kopieren... vorher Sicherung erstellen von vorhandenem Verzeichnisbaum
 if [[ -e "${linbodir}/${universalpostsyncdir}/${patchclass}" ]]

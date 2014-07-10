@@ -1,8 +1,9 @@
 # Diese Datei wird per postsync gepatcht. Zu bearbeiten ist sie auf dem Server.
 # Pfad: /tmp/var/linbo/linuxmuster-client/trusty/common/etc/hosts
+# HOSTNAME wird im Postsyncskript mit dem echten Namen gepatcht
 127.0.0.1    HOSTNAME
 
-Die nächste Zeile ist so, wie sie auf dem Server eingetragen ist...
-10.16.1.1	server.local
+Die nächste Zeile enthält die Hostnamen so, wie sie auf dem Server eingetragen sind...
+#SERVERIP server.local
 # damit CUPS zufrieden ist, muss noch diese Zeile hier dazu:
-10.16.1.1  server.lokal server.local
+#SERVERIP  server.lokal server.local
