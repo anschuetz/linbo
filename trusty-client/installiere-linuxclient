@@ -133,6 +133,21 @@ do
   fi
 done
 
+
+# Hosts-Datei erstellen
+HOSTS=common/etc/hosts
+SERVERIP=$(cat /etc/hosts | grep -e "^10" | sed 's/\t/ /g' |cut -d" " -f1)
+
+[[ ! -d common/etc ]] && mkdir -p common/etc/
+echo "# Diese Datei wird per postsync gepatcht. Zu bearbeiten ist sie auf dem Server." > ${HOSTS}
+echo "# Pfad: ${linbodir}/${universalpostsyncdir}/${patchclass}/${HOSTS}" >> ${HOSTS}
+echo "# HOSTNAME wird im Postsyncskript mit dem echten Namen gepatcht" >> ${HOSTS}
+echo "127.0.0.1    HOSTNAME" >> ${HOSTS}
+echo -e "\nDie nächste Zeile ist so, wie sie auf dem Server eingetragen ist..." >> ${HOSTS}
+cat /etc/hosts | grep -e "^10" >> ${HOSTS}
+echo "# damit CUPS zufrieden ist, muss noch diese Zeile hier dazu:" >> ${HOSTS}
+echo "${SERVERIP}  server.lokal server.local" >> ${HOSTS}
+
 # Postsync-Baum kopieren... vorher Sicherung erstellen von vorhandenem Verzeichnisbaum
 if [[ -e "${linbodir}/${universalpostsyncdir}/${patchclass}" ]]
 	then
