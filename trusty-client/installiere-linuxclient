@@ -1,25 +1,50 @@
 #!/bin/bash
 #############################################################################################
-#  Installations-Skript für den Linuxclient     jesko.anschuetz@linuxmuster.net - Juli 2014 #
+#  Installations-Skript für den Linuxclient
+#  jesko.anschuetz@linuxmuster.net
+#  10.07.2014
+#  GPL v3
 #############################################################################################
-clear
+
+#############################################################################################
+#  Dieses Skript zusammen mit
+# - name.cloop-Datei
+# - name.cloop.postsync-Datei
+# - name.cloop.desc
+# - name.cloop.torrent
+# - name.cloop.info
+# - name.cloop.macct
+# - start.conf.name
+# in ein Verzeichnis legen und starten.
+# NICHT VERGESSEN: linbodir anpassen, damit es im "live-system" passiert
+
+
+linbodir="/tmp/var/linbo"
+
+
+
 ############################################################################
 # Es sollte IN ALLER REGEL keine Notwendigkeit für Änderungen geben...     #
 # Ändere also nur, wenn du genau weißt, was du tust!                       #
 ############################################################################
+
 if [[ ! "$USER" == "root" ]]
 then
   echo "Dieses Skript muss als root laufen. ...Abbruch"
   exit 1
 fi
+clear
 
-linbodir="/tmp/var/linbo"
-# Konfig für universal postsync
+
+# wie heißt das Verzeichnis unter /var/linbo, wo der universal-
+# postsync Baum liegt?  (wird in den allermeisten Installationen
+# unverändert bleiben - nachsehen in der mitgelieferten .cloop.postsync)
+
 universalpostsyncdir="linuxmuster-client"
 
 
-# Beginn des Install-Skriptes...
-# Ohne das Linbo-Verzeichnis macht das ganze Skript keinen Sinn... also abbrechen.
+# Ohne das Linbo-Verzeichnis macht das ganze Skript keinen Sinn... also prüfen und ggf. abbrechen.
+
 if [[ ! -d ${linbodir} ]]
 then
   echo "Linboverzeichnis existiert nicht. Bitte Skript ($0) richtig konfigurieren."
@@ -28,7 +53,7 @@ then
 fi
 
 
-# Automatische Konfiguration versuchen. Dazu darf nur genau 1 .cloop Datei mit im Verzeichnis liegen.
+# Automatische Konfiguration versuchen. Dazu darf nur genau eine .cloop Datei mit im Verzeichnis liegen.
 # Wenn das nicht der Fall ist, abbrechen.
 
 if [[ $(ls *.cloop | wc -l) != 1 ]]
@@ -39,7 +64,7 @@ then
 fi
 
 
-# Wenn die Variable $cloopfile nicht definiert ist (default), dann ermittle den Namen der cloop-Datei
+# Namen der cloop-Datei ermitteln, wenn nicht weiter oben schon manuell mitgeteilt
 if [[ "$cloopfile" == "" ]]
 then
   cloop=*.cloop
@@ -58,7 +83,7 @@ postsyncfile="${cloopfile}.postsync"
 
 
 
-# zu kopierende Dateien: (Default ist cloop, startconf und postsync-datei) 
+# zu kopierende Dateien: (Default ist cloop, info, desc, macct, torrent, startconf und postsync-datei) 
 filestolinbo="${cloopfile} ${cloopfile}.desc ${cloopfile}.info ${cloopfile}.macct ${cloopfile}.torrent ${startconffile} ${postsyncfile}"
 
 # aus dem Postsync-Skript wird die Patchklasse ermittelt.
@@ -69,9 +94,7 @@ patchclass=$(grep "PATCHCLASS=" "${postsyncfile}" | cut -d"=" -f2 | sed 's/"//g'
 echo "Zusammenfassung:"
 echo "----------------"
 echo "start.conf: $startconffile"
-echo "cloop: $cloopfile"
 echo "patchclass: $patchclass"
-echo "postsyncfile: $postsyncfile"
 echo "files to linbo: $filestolinbo"
 
 
@@ -86,16 +109,17 @@ do
 	then
 	  if [[ -e "${linbodir}/${file}" ]]
 	  then
-	      echo "${file} existiert. Sicherungskopie..."
-	      cp "${linbodir}/${file}" "${linbodir}/${file}".$(date +"%Y%m%d%H%M%S")
+	      LINDIRBACKUP=1 # Flag für Meldung am Ende
+	      echo -n -e "${file} existiert. \e[01;33mSicherungskopie...\e[00m"
+	      cp "${linbodir}/${file}" "${linbodir}/${file}".$(date +"%Y%m%d%H%M%S") && echo -e "\e[01;32m\t\t...OK.\e[00m" || echo -e "\e[00;31m ...failed\e[00m"
 	  fi
 
 	  # Datei kopieren und Rechte anpassen
 	  echo -n "Kopiere ${file} nach ${linbodir}/"
-	  cp "${file}" "${linbodir}/${file}" && echo "...OK." || echo "...failed"
-	  echo "setze Dateirechte"
-	  chown root:root "${linbodir}/${file}" && echo "...OK." || echo "...failed"
-	  chmod 664 "${linbodir}/${file}"  && echo "...OK." || echo "...failed"
+	  cp "${file}" "${linbodir}/${file}" && echo -e "\e[01;32m\t\t...OK.\e[00m" || echo -e "\e[00;31m ...failed\e[00m"
+	  echo -n "setze Dateirechte von ${file}"
+	  chown root:root "${linbodir}/${file}" || echo -e "\e[00;31m...failed\e[00m"
+	  chmod 664 "${linbodir}/${file}"  && echo -e "\e[01;32m\t...OK.\e[00m" || echo -e "\e[00;31m ...failed\e[00m"
 	else
 	  echo -e "\e[00;31m ${file} fehlt zu Installation... bitte Konfiguration überprüfen.\e[00m"
 	  if [[ -e "${linbodir}/${file}" ]]
@@ -112,8 +136,9 @@ done
 # Postsync-Baum kopieren... vorher Sicherung erstellen von vorhandenem Verzeichnisbaum
 if [[ -e "${linbodir}/${universalpostsyncdir}/${patchclass}" ]]
 	then
-	  echo Postsync-Baum existiert. Sicherungskopie...
-	  mv "${linbodir}/${universalpostsyncdir}" "${linbodir}/${universalpostsyncdir}".$(date +"%Y%m%d%H%M%S")
+	  POSTSYNCBACKUP=1  # Flag für Meldung am Ende.
+	  echo -n -e "Postsync-Baum existiert. \e[01;33mSicherungskopie...\e[00m"
+	  mv "${linbodir}/${universalpostsyncdir}/${patchclass}" "${linbodir}/${universalpostsyncdir}/${patchclass}".$(date +"%Y%m%d%H%M%S") && echo -e "\e[01;32m\t...OK.\e[00m" || echo -e "\e[00;31m ...failed\e[00m"
 	fi
 
 	# Verzeichnisbaum erstellen
@@ -121,5 +146,7 @@ if [[ -e "${linbodir}/${universalpostsyncdir}/${patchclass}" ]]
 	echo Kopiere Postsync-Baum...
 	cp -r common "${linbodir}/${universalpostsyncdir}/${patchclass}"
 
-	echo fertig
+	[[ "$LINDIRBACKUP" == "1" ]] && echo -e "\e[00;31mEs wurden schon vorhandene Dateien mit Zeitstempel gesichert. Bitte in ${linbodir} nachsehen. \e[00m"
+	[[ "$POSTSYNCBACKUP" == "1" ]] && echo -e "\e[00;31mDer ursprüngliche Postsync-Verzeichnisbaum unter ${linbodir}/${universalpostsyncdir}/${patchclass} wurde mit Zeitstempel gesichert. Bitte prüfen, ob wichtige Dateien in den aktuellen Baum kopiert werden müssen. \e[00m"
 
+	echo fertig
