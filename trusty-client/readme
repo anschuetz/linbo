@@ -15,23 +15,20 @@ Was ist danach zu tun?
 
 
 Voraussetzungen:
-
-Das Verzeichnis enthält:
-- installiere-linuxmusterclient Skript
-- Verzeichnis "common": Enthält alles, was per Postsync auf alle Clients soll
-- ein cloop (z.B. trusty-linuxmuster.cloop)
-- eine start.conf, die genau so heißt, wie das cloop (z.B. start.conf.trusty-linuxmuster)
-- ein universelles Postsync-Skript, was auch so heißt (z.B. trusty-linuxmuster.cloop.postsync)
-
+- ein funktionierendes Linbo-System
+- ein linuxmuster.net Server
 
 Anwendung:
 
-- Alle Dateien auf den Server kopieren (z.B. nach /tmp oder /root/linuxclient)
+- Installationsskript auf den Server kopieren (z.B. nach /tmp oder /root/linuxclient)
 - installiere-linuxmusterclient ausführbar machen mit chmod +x ...
-- in diesem Skript die Variable "linbodir" anpassen (Ausgeliefert wird aus Sicherheitsgründen mit "/tmp/var/linbo")
-  das "/tmp" muss für den echten Betrieb weg...
 - ./installiere-linuxmusterclient aufrufen.
 
-fertig.
+Dann werden (wenn nicht schon vorhanden) alle notwendigen Dateien heruntergeladen und installiert.
+
+Es sind zwischen 2GB und 3GB herunterzuladen. Das kann eine Weile dauern. Deshalb ist es sinnvoll, das Ganze in einer
+screen-session zu erledigen, falls man remote arbeitet.
 
 
+
+TODO: md5 checksummen verwenden, um zu verhindern, dass eine unvollständige cloop-Datei Ärger macht...
