@@ -21,8 +21,8 @@ Voraussetzungen:
 Anwendung:
 
 - Installationsskript auf den Server kopieren (z.B. nach /tmp oder /root/linuxclient)
-- installiere-linuxmusterclient ausführbar machen mit chmod +x ...
-- ./installiere-linuxmusterclient aufrufen.
+- ausführbar machen mit chmod +x ...
+- ./install_trusty_client aufrufen.
 
 Dann werden (wenn nicht schon vorhanden) alle notwendigen Dateien heruntergeladen und installiert.
 
