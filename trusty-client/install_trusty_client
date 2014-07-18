@@ -16,13 +16,14 @@
 # - name.cloop.macct
 # - start.conf.name
 # in ein Verzeichnis legen und starten.
+# sind Dateien nicht vorhanden, werden sie automatisch vom cloop.linuxmuster.net geladen.
 # NICHT VERGESSEN: linbodir anpassen, damit es im "live-system" passiert
 
 
-linbodir="/tmp/var/linbo"
+linbodir="/var/linbo"
 # für den Fall, dass kein cloop mit im Verzeichnis liegt, wird hier gesucht:
 cloop_remote_path="http://cloop.linuxmuster.net"
-cloop_remote_name="trusty-linuxmuster.cloop"
+cloop_remote_name="trusty714.cloop"
 
 
 ############################################################################
@@ -145,6 +146,25 @@ do
 		echo -e "\033[1A\033[11D\e[00;31m ...failed \033[K \e[00m"
 	      fi
 	  fi
+        else # wenn es das File NICHT gibt.
+	# Versuche, die Datei vom Server herunterzuladen
+   	    echo "${file} ist lokal nicht vorhanden. Versuche ${file} von ${cloop_remote_path} herunterzuladen..."
+   	    if wget -q ${cloop_remote_path}/${file}
+   	    then
+              echo -e "\e[01;32m...OK.\e[00m"
+            else
+              echo -e "\e[00;31m...failed.\e[00m"
+              if [[ -e "${linbodir}/${file}" ]]
+	      then
+		echo -e "\e[01;32mDie Datei ist allerdings in ${linbodir} schon vorhanden. Wenn das Absicht war, ist alles gut.\e[00m"
+	      fi
+            fi
+	  # prüfe, ob sie jetzt da ist, um weiter zu machen
+          if [[ ! -e ${file} ]]
+	  then
+	    echo -e "\e[00;31m ${file} fehlt zu Installation... bitte Konfiguration überprüfen.\e[00m"
+	  fi
+	fi
 
 	  # Datei kopieren und Rechte anpassen
 	  echo "Kopiere ${file} nach ${linbodir}/"
@@ -171,25 +191,7 @@ do
 	    echo -n -e "\e[00;31m ...failed\e[00m"
 	  fi
 	  echo -e "\n"
-  else # wenn es das File NICHT gibt.
-	# Versuche, die Datei vom Server herunterzuladen
-   	    echo "${file} ist lokal nicht vorhanden. Versuche ${file} von ${cloop_remote_path} herunterzuladen..."
-   	    if wget -q ${cloop_remote_path}/${file}
-   	    then
-              echo -e "\e[01;32m...OK.\e[00m"
-            else
-              echo -e "\e[00;31m...failed.\e[00m"
-              if [[ -e "${linbodir}/${file}" ]]
-	      then
-		echo -e "\e[01;32mDie Datei ist allerdings in ${linbodir} schon vorhanden. Wenn das Absicht war, ist alles gut.\e[00m"
-	      fi
-            fi
-	  # prüfe, ob sie jetzt da ist, um weiter zu machen
-          if [[ ! -e ${file} ]]
-	  then
-	    echo -e "\e[00;31m ${file} fehlt zu Installation... bitte Konfiguration überprüfen.\e[00m"
-	  fi
-	fi
+
   else
 	# wenn aus welchen Gründen auch immer kein $file übergeben wurde...
 	 echo "nichts zu tun..."
