@@ -236,4 +236,5 @@ rsync -Pa common "${linbodir}/${universalpostsyncdir}/${patchclass}"
 [[ "$LINDIRBACKUP" == "1" ]] && echo -e "\e[00;33mEs wurden schon vorhandene Dateien mit Zeitstempel gesichert. Bitte in ${linbodir} nachsehen. \e[00m"
 [[ "$POSTSYNCBACKUP" == "1" ]] && echo -e "\e[00;31mDer ursprüngliche Postsync-Verzeichnisbaum unter ${linbodir}/${universalpostsyncdir}/${patchclass} wurde mit Zeitstempel gesichert. Bitte prüfen, ob wichtige Dateien in den aktuellen Baum kopiert werden müssen. \e[00m"
 
+/etc/init.d/linbo-bittorrent restart ${cloopfile} force
 echo -e "\n\n\n\e[01;32mFertig\e[00m"
