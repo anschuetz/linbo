@@ -1,0 +1,43 @@
+# $Id: minimal.cloop.postsync 2013-01-28 10:30:00Z anschuetz $
+
+# Diese minimale Postsync-Datei stellt sicher, dass vmlinuz und initrd.img 
+# richtig verlinkt sind. Damit gehören Kernel-Panics der Vergangenheit an.
+# Jesko.Anschuetz@linuxmuster.net irgendwann im Jahre 2013  GPL v3 
+
+echo "##### POSTSYNC BEGIN #####"
+
+# Für alle relevanten Dateien wiederholen:
+# 1. Prüfen, ob der Link absolut oder relativ gesetzt ist, wenn absolut, korrigieren...
+
+PWD=$(pwd)
+cd /mnt
+for LINKNAME in initrd.img vmlinuz
+do
+  if [ "$(ls -l $LINKNAME | cut -d ">" -f 2 | sed 's/^ *//g'|cut -d "b" -f 1)" == "/" ] ;
+                          # beim > trennen | Space wegmachen| Beim b (von boot) trennen und schauen, ob davor ein / war)
+# alternativ schöner und kürzer, aber noch ungetestet: 
+# if [ "$(ls -l /initrd.img | awk -F\>\  '{print $2}'|head -c1)" == "/" ] ;
+			 # bei "> " trennen, zweite Spalte, erstes Zeichen.
+  then
+      echo $LINKNAME ist absolut verlinkt.
+      LINKZIEL=$(ls -l $LINKNAME | cut -d ">" -f 2 |cut -d "/" -f 3)
+      if [ "$(echo $LINKZIEL | cut -d "-" -f 1)" == "$LINKNAME" ]
+      then
+           echo -n "Verschiebe $LINKNAME nach $LINKNAME... "
+           mv $LINKNAME $LINKNAME.bak && echo "OK" || echo "gescheitert!"
+           echo -n "verlinke $LINKNAME nach boot/$LINKZIEL... "
+           ln -s boot/$LINKZIEL $LINKNAME && echo "OK" || echo "gescheitert"
+           # TODO hier müsste noch ein Test rein, der prüft, ob der link _korrekt_ angelegt wurde und im Notfall
+           # das Backup des Links zurückkopiert...
+      else
+           echo "Etwas stimmt nicht! Linkziel ($LINKZIEL) stimmt nicht mit Linkname ($LINKNAME) ueberein!"
+           echo "Link für $LINKNAME nicht veraendert!"
+      fi
+
+  else
+      echo $LINKNAME ist schon relativ verlinkt. Nichts veraendert;
+  fi
+done
+
+echo "##### POSTSYNC END #####"
+
