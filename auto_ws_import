@@ -8,29 +8,31 @@ tmpDateiMAC=$tmpDatei.MAC
 tmpWorkstations=$tmpDatei.workstations
 tmpDateiLinboRemote=$tmpDatei.linboremote
 workstations=/etc/linuxmuster/workstations
-defaultNetzMaske="255.240.0.0"
+#defaultNetzMaske="255.240.0.0" # obsolet
 defaultRaumName="none"
 defaultRaumIP="10.16.101"
 defaultGruppe="lenny"
 remoteCommands="partition,format,initcache,sync:1,halt"
 warteZeit=60
 
+#################
+SERVERIPESCAPED=$(hostname -I | sed "s/\./\\\./g")
 tmpDatei_auswerten() {
   echo
   echo 'Log-Aufzeichnung beendet... beginne mit der Auswertung.'
   echo Raum-Name: $raumname
   echo Raum-IP: $raumip
-  echo Netzmaske: $netzmaske
+#  echo Netzmaske: $netzmaske
   echo Hardware-Gruppe: $gruppe
   echo neue MAC-Adressen:
   # MAC-Adressen nach $tmpDatei.MAC
-  cat $tmpDatei | grep 'DHCPOFFER on 10\.16\.1\.1' | awk -F'to ' '{print $2}'| awk -F' via' '{print $1}' | sed -e 's/ //g' > $tmpDateiMAC
-  cat $tmpDatei | grep 'DHCPOFFER on 10\.16\.1\.1' | awk -F'on ' '{print $2}'| awk -F' to' '{print $1}' | sed -e 's/ //g' | uniq > $tmpDateiIP
+  cat $tmpDatei | grep "DHCPOFFER on $SERVERIPESCAPED"| awk -F'to ' '{print $2}'| awk -F' via' '{print $1}' | sed -e 's/ //g' > $tmpDateiMAC
+  cat $tmpDatei | grep "DHCPOFFER on $SERVERIPESCAPED" | awk -F'on ' '{print $2}'| awk -F' to' '{print $1}' | sed -e 's/ //g' | uniq > $tmpDateiIP
 
   # Für jede MAC Adresse einen Eintrag in die tmp-Workstations-Datei schreiben...
   for MAC in $(cat $tmpDateiMAC|uniq)
   do
-    echo $raumName';'$raumName-pc$(printf "%02i" $i)';'$gruppe';'$MAC';'$(echo $raumIP.$i|sed -e 's/\.\+/\./g')';'$netzMaske';1;1;1;1;1' >> $tmpWorkstations
+    echo $raumName';'$raumName-pc$(printf "%02i" $i)';'$gruppe';'$MAC';'$(echo $raumIP.$i|sed -e 's/\.\+/\./g')';;;;;1;1;' >> $tmpWorkstations
     echo $raumName-pc$(printf "%02i" $i) >> $tmpDateiLinboRemote
     let i=i+1
   done
